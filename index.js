@@ -47,7 +47,6 @@ async function connectToWhatsApp() {
       if (dados.error) {
         resposta = dados.error;
       } else {
-        // --- A CORREÇÃO ESTÁ AQUI ---
         // Usando os nomes de coluna corretos que descobrimos no diagnóstico
         resposta = `*✅ Resultado da Consulta do CA: ${dados['NR Registro CA']}*\n\n` +
                    `*Data de Validade:* ${dados['DATA DE VALIDADE']}\n` +

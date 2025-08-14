@@ -21,8 +21,7 @@ function loadData() {
   parser.on('readable', function(){
     let record;
     while ((record = parser.read()) !== null) {
-      // --- A CORREÇÃO ESTÁ AQUI ---
-      // Usando a coluna correta que descobrimos no diagnóstico: 'NR Registro CA'
+      // Usando a coluna correta que descobrimos no diagnóstico
       const caKey = record['NR Registro CA'];
       if (caKey) {
         caData.set(String(caKey).trim(), record);
