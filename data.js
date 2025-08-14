@@ -1,45 +1,55 @@
-// data.js - VERSÃO DE DIAGNÓSTICO FINAL
 const fs = require('fs');
 const path = require('path');
-const unzipper = require('unzipper');
+const { parse } = require('csv-parse');
 
-// As outras bibliotecas não são necessárias para este teste.
+const caData = new Map();
 let isDataReady = false;
 
 function loadData() {
-  console.log('[DADOS] Iniciando diagnóstico do arquivo caepi.zip...');
-  const zipFilePath = path.resolve(__dirname, 'caepi.zip');
+  console.log('[DADOS] Iniciando carregamento do arquivo caepi.csv...');
+  const csvFilePath = path.resolve(__dirname, 'caepi.csv');
   
-  fs.createReadStream(zipFilePath)
-    .pipe(unzipper.Parse())
-    .on('entry', function (entry) {
-      const fileName = entry.path;
-      if (fileName.toLowerCase().endsWith('.csv')) {
-        console.log(`[DADOS] Arquivo CSV encontrado: ${fileName}. Lendo amostra...`);
-        
-        // Lê apenas o início do arquivo para diagnóstico
-        entry.buffer().then(function(content) {
-            const fileSample = content.toString('latin1').substring(0, 500); // Pega os primeiros 500 caracteres
-            console.log('--- DIAGNÓSTICO DO ARQUIVO CSV ---');
-            console.log('Amostra do conteúdo (como o robô está a ler):');
-            console.log('====================================');
-            console.log(fileSample);
-            console.log('====================================');
-            console.log('Por favor, copie e cole o texto acima para análise.');
-            console.log('--- FIM DO DIAGNÓSTICO ---');
-        });
-      } else {
-        entry.autodrain();
+  const fileContent = fs.readFileSync(csvFilePath, 'latin1'); 
+
+  const parser = parse(fileContent, {
+    delimiter: ';',
+    columns: true,
+    trim: true,
+    skip_empty_lines: true
+  });
+
+  parser.on('readable', function(){
+    let record;
+    while ((record = parser.read()) !== null) {
+      // Usando a coluna correta que descobrimos no diagnóstico
+      const caKey = record['NR Registro CA'];
+      if (caKey) {
+        caData.set(String(caKey).trim(), record);
       }
-    })
-    .on('error', function(err) {
-      console.error('[DADOS] ERRO AO ABRIR O ARQUIVO ZIP:', err.message);
-    });
+    }
+  });
+
+  parser.on('end', function(){
+    isDataReady = true;
+    console.log(`[DADOS] Base de dados carregada com sucesso. Total de ${caData.size} registros.`);
+  });
+
+  parser.on('error', function(err){
+    console.error('[DADOS] ERRO AO LER O ARQUIVO CSV:', err.message);
+  });
 }
 
 function getCAInfo(caNumber) {
-  // Resposta padrão durante o diagnóstico
-  return { error: 'Robô em modo de diagnóstico. Verifique os logs do Render.' };
+  if (!isDataReady) {
+    return { error: 'A base de dados ainda está a ser carregada. Por favor, tente novamente em um minuto.' };
+  }
+  
+  const caInfo = caData.get(String(caNumber).trim());
+  if (caInfo) {
+    return caInfo; // Retorna o registro completo
+  } else {
+    return { error: `O CA "${caNumber}" não foi encontrado na base de dados.` };
+  }
 }
 
 module.exports = { getCAInfo, loadData };

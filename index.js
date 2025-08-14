@@ -47,7 +47,12 @@ async function connectToWhatsApp() {
       if (dados.error) {
         resposta = dados.error;
       } else {
-        resposta = `*✅ Resultado da Consulta do CA: ${dados['Nº do CA']}*\n\n` + `*Data de Validade:* ${dados['Data de Validade']}\n` + `*Situação:* ${dados['Situação']}\n` + `*Equipamento:* ${dados['Equipamento']}\n\n` + `*Fabricante:* ${dados['Fabricante']}`;
+        // Usando os nomes de coluna corretos que descobrimos no diagnóstico
+        resposta = `*✅ Resultado da Consulta do CA: ${dados['NR Registro CA']}*\n\n` +
+                   `*Data de Validade:* ${dados['DATA DE VALIDADE']}\n` +
+                   `*Situação:* ${dados['SITUACAO']}\n` +
+                   `*Equipamento:* ${dados['DESCRICAO EQUIPAMENTO']}\n\n` +
+                   `*Fabricante:* ${dados['RAZAO SOCIAL']}`;
       }
     } else if (textoMensagem === 'oi' || textoMensagem === 'olá' || textoMensagem === 'ola') {
       resposta = 'Olá! Para consultar um Certificado de Aprovação, envie uma mensagem no formato: *CA 12345*';
